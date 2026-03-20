@@ -14,11 +14,28 @@ y luego usarlo como deseen
   
 */
 import scala.io.StdIn.readInt
+import scala.annotation.tailrec
 
 @main def euclidesInteractivo(): Unit = {
   // Inicio de la zona donde deben editar el código
   
-  println("No le sé al máximo común divisor :(")
-  
+  //por sugerencia de Scala colocamos @tailrec 
+  @tailrec
+  def mcd(p: Int, q:Int):  Int = {
+
+    if (q == 0) p 
+    else mcd(q, p%q)
+  }
+  println("Ingrese el primer número (0 para salir): ")
+  val a: Int = readInt()
+
+  if (a == 0) println("Adiós!")
+  else
+    println("Ingrese el segundo número ")
+    val b: Int = readInt()
+    val c: Int = mcd(a,b)
+    println(s"El MCD de $a y $b es $c")
+
+
   // Fin de la zona donde deben editar el código
 }
