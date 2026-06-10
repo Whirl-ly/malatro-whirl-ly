@@ -1,85 +1,85 @@
-# Tarea 0 | Entrega Final
+# Entrega Parcial 3 | Entrega Final Tarea 1
+This document details important information about the taken decisions  to approach 
+the requirements described on the ``EP3-EF1.md`` file.
 
-La idea de esta primera entrega es que se familiaricen con el lenguaje Scala, así como el manejo de Git, resolviendo un problema de programación sencillo.
+## Organization of the code
 
-## Problema: Encontrar el Máximo Común Divisor (mcd) entre dos números dados.
+The code has been organized in this way:
+- Each distinguishable property of a card has been assigned to a package/folder
+- Each package/folder contains:
+  - A trait
+  - Classes
+  - Abstract classes (if necessary)
 
-El **Máximo Común Divisor (MCD)** de dos números enteros es el mayor número entero positivo que divide a ambos sin dejar residuo. Por ejemplo, el MCD de 12 y 8 es 4, ya que 4 es el mayor número que divide tanto a 12 como a 8.
+The only files/packages that are excluded from this type of organization are 
+``carta.scala``, ``Hand.scala``, ``puntaje.scala`` classes, ``ListOps.scala`` object and the ``test`` package. The reason behind this decision
+is that those files didn't require a trait to describe a desired behavior. 
 
-Para calcularlo, utilizaremos el **algoritmo de Euclides**, que se basa en la siguiente observación:
+### About the organization of the testing files 
+The test's files has been assigned to the ``test.scala`` package to provide better code-reading to the user reviewing 
+the repo.
 
-> mcd(a, b) = mcd(b, a mod b)
+## Relevant design decisions 
 
-Es decir, el MCD de dos números es igual al MCD del segundo número y el resto de dividir el primero por el segundo. Cuando el resto es 0, el MCD es el último divisor no nulo.
+### 1. ``combinations`` package
+#### About the code duplication problem:
+Code duplication was noted on the ``validate()`` method inside each class during the construction/abstraction stage of the package.
+This problem emerged due to the similarities of each combination type. 
 
-**Ejemplo paso a paso:** mcd(12, 8)
-- mcd(12, 8) → mcd(8, 12 mod 8) = mcd(8, 4)
-- mcd(8, 4) → mcd(4, 8 mod 4) = mcd(4, 0)
-- Como el segundo valor es 0, el MCD es **4**.
+For example:
+-  ``StraightFlush.scala`` is a stricter variant of the  ``Straight.scala`` class.
+-  The only difference between the ``Trio.scala`` and ``Pair.scala`` classes is the number of cards that describes 
+each combination respectively.
 
-### Comportamiento esperado
+The proposed solution to this problem in my repo consists in the creation of an abstract class: ``combinationBase.scala``.
+Said abstract class contains every method that was causing code duplication conflicts.
 
-El programa debe ser **interactivo**: pedirle al usuario dos números, calcular el MCD entre ellos utilizando el algoritmo de Euclides, mostrar el resultado, y repetir el proceso. El programa termina cuando el usuario ingresa **0** como primer número.
+For example:
 
-### Ejemplo de ejecución
+- Instead of defining specific ``validate()`` methods on the ``Trio.scala`` and ``Pair.scala`` classes, a concrete ``mismoRango()``
+method was created inside the abstract class to deliver a code duplication free solution. 
+  - <small>Note: See ``combinacionBase.scala`` documentation for more information. </small>
 
-```
-Ingrese el primer número (0 para salir): 12
-Ingrese el segundo número: 8
-El MCD de 12 y 8 es 4
+#### About the ``ResolveHand.scala`` package:
+During the construction of the package, an important question emerged: **¿how can I handle conflictive combination cases 
+without a "priority" property on each combination type?**
 
-Ingrese el primer número (0 para salir): 15
-Ingrese el segundo número: 5
-El MCD de 15 y 5 es 5
+The best answer that I could think of was creating a new class by composition:
+``ResolveHand.scala``. Said class initializes each combination type and validates them in the order specified on the
+``EP2.md`` file. 
 
-Ingrese el primer número (0 para salir): 0
-Adiós!
-```
+The downside of this approach is that we have to use this specific class to resolve conflictive cases 
+instead of the already defined ``validate()`` methods inside each class.
+### 2. ``ranges`` package
+I took a specific decision about the ``clasification`` property inside this package. 
+Instead of defining a different trait to abstract the behavior, I took a simpler approach by defining 
+the type of ``clasification`` as a string.
 
-## Git
 
-Para trabajar en esta tarea, deben crear una rama llamada `entrega-final-0` a partir de `main`
+### 3. ``Hand.scala`` class and ``ListOps.scala`` object
+#### About code duplication:
+During the phase of construction of methods inside this class, code duplication was noted.
 
-Una vez que hayan terminado de implementar su solución, hagan commit y push de sus cambios en esa rama
+To prevent that problem, I decided to create a sePairate object (``ListOps.scala``) which contains general methods 
+(specifically ``addElem`` & ``removeElem``). This is so we can add card or joker card types to a hand without worries.
 
-## Instrucciones de implementación
+This approach is different from the already seen one in the ``combinations`` package. 
+The reason behind this is that I determined that it wasn't necessary to create an abstract class since it was a 
+singular file that was having this problem.
 
-El archivo que deben editar es:
+Therefore, I concluded that creating an abstract class would have added unnecessary complexities.
 
-```
-src/main/scala/mcd/euclides.scala
-```
+#### About mutable lists:
+To accomplish the objectives of this delivery, I decided that using mutable list's (instead of immutable ones) to 
+add cards/jokers to a hand was the optimal solution overall.
 
-Deben escribir su código **entre los comentarios de inicio y fin** que encontrarán en el archivo:
-
-```scala
-// Inicio de la zona donde deben editar el código
-
-// (su código va aquí)
-
-// Fin de la zona donde deben editar el código
-```
-
-Para ejecutar el programa y probar su solución, utilicen:
-
-```bash
-sbt run
-```
-
-## Entrega
-
-Para subir su entrega, deberán crear un **Pull Request** en GitHub desde la rama `entrega-final-0` hacia `main`, con el título **"Tarea 0 - Entrega Final"**.
-
-**IMPORTANTE: No hacer merge** del Pull Request. El cuerpo docente **solo revisará** la pull request realizada.
-
-Entregar por **U-Cursos** un archivo llamado `entrega-final-0.txt` que contenga:
-- Su nombre completo
-- El link al Pull Request
-   
-Este es el formato que deben seguir:
-```txt
-Nombre: Perico Los Palotes (lo cambian por su nombre)
-Pull Request: https://github.com/... (completan los "..." con el resto del link)
-```
-
-Esta tarea es **obligatoria** y corresponde al **5% de la nota de Tareas**.
+This decision was made because of the nature of the game that we are modeling (Balatro). Creating new immutable list's each time a card/joker is added to a hand doesn't make 
+any sense, it would be a waste of memory and players won't need a history of the hand's played during rounds (which is
+the only reason that I could think of that we would desire to use immutable lists).  
+### Design patterns
+Throughout the process, certain design patterns appeared on the files:
+1. Using trait as a contract: Different classes implement the same contract. 
+2. Abstract Classes for shared code: Reutilizes common logic in subclasses.
+3. Generic methods: Solution for multiple variable types with common logic (``Hand.scala``)
+4. Composition: Used in ``ResolveHand.scala`` class
+5. Mutability in card/joker lists
