@@ -29,4 +29,5 @@ trait Suit {
    * @return ID number
    */
   def hashCode(): Int
+  def applyGreedyJoker(score:Score): Unit
 }

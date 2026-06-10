@@ -11,7 +11,7 @@ import EF2.hand.Hand
 
 
 
-class cardTest extends FunSuite:
+class   cardTest extends FunSuite:
 
   var score2: Score = _
   var score1: Score = _

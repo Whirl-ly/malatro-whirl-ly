@@ -37,11 +37,12 @@ class Card(private val _range: Range, private val _suit: Suit) {
     range.hashCode() * 31 + suit.hashCode()
   
   def applyScore(score: Score, Jokers: List[Joker]): Score = {
-    val final_score: Score = score
+    score.chips_(score.chips + this.range.value)
     for (j <- Jokers) {
-      j.applyCard(this, final_score)
+      this.range.applyScore(score,j)
+      this.suit.applyScore(score,j)
     }
-    final_score
+    score
   }
   
 }

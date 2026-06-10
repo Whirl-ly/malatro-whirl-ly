@@ -20,12 +20,21 @@ trait Combination {
   def validate(Cards: List[Card]): Boolean
 
   /**
-   * Updates score points depending on a certain predisposed joker type
+   * Updates score points based in a DeviousJoker card application
    * and a combination
    *
    * @param score represents a predisposed score
-   * @param j     represents a predisposed joker
-   * @return new score  
+   * @note does nothing most of the time
+   * @see applyCombination method on JokerApply class
+   */
+  def applyDeviousJoker(score: Score): Unit
+
+  /**
+   * Allows score points update based on certain joker type by double-dispatch
+   *
+   * @param score predisposed score
+   * @param j predisposed joker type
+   * @return updated score
    */
   def applyScore(score: Score, j: Joker): Score
 }

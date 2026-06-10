@@ -41,7 +41,10 @@ abstract class CombinationBase extends Combination{
     Cards.length <= 5 && Cards.length >= n &&
       Cards.groupBy(_.range).values.exists(grupo => grupo.length >= n)
   }
-  def applyScore(score: Score, j: Joker): Score  = {
+
+  override def applyDeviousJoker(score: Score): Unit = {}
+
+  def applyScore(score: Score, j: Joker): Score = {
     j.applyCombination(this, score)
   }
 }

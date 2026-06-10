@@ -9,4 +9,8 @@ class Straight extends CombinationBase{
   override val pBase: Score = new Score(30,4)
   override def validate(cards: List[Card]): Boolean =
     isStraight(cards)
+  
+  override def applyDeviousJoker(score: Score): Unit = {
+    score.chips_(score.chips + 100)
+  }
 }

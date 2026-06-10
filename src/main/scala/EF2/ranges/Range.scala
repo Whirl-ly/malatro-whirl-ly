@@ -34,5 +34,7 @@ trait Range {
    * @return ID number
    */
   def hashCode(): Int
-
+  
+  def applyEvenJoker(score:Score) : Unit
+  def applyScaryFace(score: Score): Unit
 }

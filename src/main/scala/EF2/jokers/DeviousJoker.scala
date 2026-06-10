@@ -1,7 +1,9 @@
 package cl.uchile.dcc
 package EF2.jokers
-import EF2.suits.*
+
+import EF2.combinations.Combination
 import EF2.Score
+
 /**
  * Representation of DeviousJoker (type of joker)
  */
@@ -10,8 +12,9 @@ class DeviousJoker extends JokerApply {
     obj.isInstanceOf[DeviousJoker]
 
   override def hashCode(): Int = getClass.hashCode()
-  
-  override def applySuit(cSuit: Suit, score: Score): Unit = {
-    cSuit.applyScore(score, this)
+
+  override def applyCombination(cCombination: Combination, score: Score): Score = {
+    cCombination.applyDeviousJoker(score)
+    score
   }
 }

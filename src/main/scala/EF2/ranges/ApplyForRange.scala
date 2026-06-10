@@ -9,5 +9,6 @@ abstract class ApplyForRange extends Range{
   def applyScore(score: Score, j: Joker): Score = {
     j.applyRange(this, score)
   }
-
+  override def applyEvenJoker(score: Score): Unit = {}
+  override def applyScaryFace(score: Score): Unit = {}
 }
