@@ -1,0 +1,14 @@
+package cl.uchile.dcc
+package EF2.ranges.odds
+
+class Nine extends AllOdd {
+  /* getters */
+  override def value: Int = 9
+  override def order: Int = 9
+
+  override def equals(obj: Any): Boolean =
+    obj.isInstanceOf[Nine]
+
+  override def hashCode(): Int = value * 31 + order
+
+}
