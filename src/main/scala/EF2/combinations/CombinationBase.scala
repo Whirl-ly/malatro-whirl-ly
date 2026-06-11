@@ -3,7 +3,7 @@ package EF2.combinations
 import EF2.{Card, Score}
 import EF2.jokers.*
 /**
- * Contains all the base functions used in concrete classes inside combinaciones package
+ * Contains all the base functions used in concrete classes inside combinations package
  * 
  * (resolves code duplication)
  */
@@ -27,19 +27,19 @@ abstract class CombinationBase extends Combination{
    * @return true if the cards are consecutive / false if not
    */
   protected def isStraight(Cards:List[Card]): Boolean = {
-    val ordenes = Cards.map(_.range.order).sorted
+    val ordenes = Cards.map(_.rank.order).sorted
     (0 until ordenes.length - 1).forall(i => ordenes(i+1) == ordenes(i) + 1)
   }
   /**
    * Checks if the cards inside the list
-   * has at least one group of cards with the same range
+   * has at least one group of cards with the same rank
    * @param Cards list of cards (cartas.length>= n)
    * @param n minimum group size
-   * @return true if a group of cards with same range exists / false if not
+   * @return true if a group of cards with same rank exists / false if not
    */
   protected def sameRange(Cards:List[Card], n:Int): Boolean = {
     Cards.length <= 5 && Cards.length >= n &&
-      Cards.groupBy(_.range).values.exists(grupo => grupo.length >= n)
+      Cards.groupBy(_.rank).values.exists(grupo => grupo.length >= n)
   }
 
   override def applyDeviousJoker(score: Score): Unit = {}

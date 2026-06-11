@@ -12,8 +12,8 @@ class Diamond extends applyForSuit{
   override def hashCode(): Int = getClass.hashCode()
 
   /**
-   * Increments the score multiplier by 3 only in this case 
-   * @param score score to modify
+   * Increments the score multiplier by 3
+   * @param score score to update
    */
   override def applyGreedyJoker(score: Score): Unit = {
     score.multiplier_(score.multiplier + 3)

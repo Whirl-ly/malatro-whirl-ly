@@ -6,7 +6,7 @@ import EF2.{Card, Score}
  * combinations
  */
 class HighCard extends CombinationBase{
-  override val pBase: Score = new Score(5,1)
+  override val bScore: Score = new Score(5,1)
   override def validate(cards: List[Card]): Boolean = {
 
     !isStraight(cards) && !sameSuit(cards) &&

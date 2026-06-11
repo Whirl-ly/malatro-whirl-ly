@@ -5,25 +5,25 @@ import EF2.exceptions.{MaxDiscardCountException, MaxPlayCountException}
 import EF2.hand.ListOps.*
 import EF2.jokers.Joker
 import EF2.Card
-import EF2.hand.ValidateAction
-
+import EF2.combinations.*
+import EF2.Score
 /**
  * Represents a hand defined by a list of cards and jokers
  * @param _cards mutable list of cards
  * @param _jokers mutable list of jokers
  */
-class Hand(private var _cards: List[Card], private var _jokers: List[Joker]) extends ValidateAction{
+class Hand(private var _cards: List[Card], private var _jokers: List[Joker]) extends ResolveHand{
 
   /**
    * Internal counter for playing a hand
-   *
-   * @see play method on a hand
+   * @note cannot be >3
+   * @see [[play How play works]]
    */
   private var playCount: Int = 1
   /**
    * Internal counter for discarding a card
-   *
-   * @see discard method on a hand
+   * @note cannot be >3
+   * @see [[discard How discard works]]
    */
   private var discardCount: Int = 1
 
@@ -44,7 +44,7 @@ class Hand(private var _cards: List[Card], private var _jokers: List[Joker]) ext
    * @param newCard Card to add
    * @throws scala.IllegalArgumentException when adding more than 8 cards to a hand
    */
-  def addCard(newCard: Card): Unit = {
+   def addCard(newCard: Card): Unit = {
     if (_cards.length >= 8) {
       throw new IllegalArgumentException("No se pueden tener más de 8 cartas a la mano")
     }
@@ -60,8 +60,11 @@ class Hand(private var _cards: List[Card], private var _jokers: List[Joker]) ext
   }
 
   /**
-   * Removes a list of cards inside a hand
+   * Internal method helper to remove a list of cards inside a hand
    * @param indexes location of the cards to remove
+   * @note does it by sorting the indexes in descendent order (to prevent index conflict)
+   * @see [[play How play works]]
+   * @see [[discard How discard works]]
    */
   private def removeCards(indexes: List[Int]): Unit = {
     val orderedIndexes = indexes.sorted.reverse
@@ -74,7 +77,7 @@ class Hand(private var _cards: List[Card], private var _jokers: List[Joker]) ext
    * Adds a new joker on a hand
    *
    * @param newJoker joker to add
-   * @throws scala.IllegalArgumentException when adding more than 2 jokers to a hand
+   * @throws IllegalArgumentException when adding more than 2 jokers to a hand
    */
   def addJoker(newJoker: Joker): Unit = {
     if (_jokers.length >= 2) {
@@ -83,47 +86,78 @@ class Hand(private var _cards: List[Card], private var _jokers: List[Joker]) ext
     _jokers = addElem(jokers, newJoker)
   }
 
+  /**
+   * Removes a joker from hand
+   * @param i index of the joker to remove
+   */
   def removeJoker(i: Int): Unit = {
     _jokers = removeElem(jokers, i)
   }
+
+  /**
+   * Discard certain cards from a hand
+   *
+   * @param indexes index list of the cards desired to discard
+   * @return list of cards discarded
+   * @throws MaxDiscardCountException when trying to discard more than 3 times
+   */
   def discard(indexes: List[Int]): List[Card] = {
 
+    // ---- validation process ----
     if (discardCount >= 3) {
       discardCount = 1
       throw new MaxDiscardCountException("No se puede descartar más de 3 veces un conjunto de cartas")
     }
     validate(indexes, _cards)
 
-
+    // ---- discard process ----
 
     //first we map the cards played (list to return)
     val discardedCards = indexes.map(i => cards(i))
     //then, we remove the same cards in descendent order (to prevent index conflict)
     removeCards(indexes)
-    discardCount+=1
-    print(discardCount)
+    discardCount+=1 // update discard counter
     discardedCards
   }
+
   /**
-   * Receives indexes of the cards desired to play contained in the hand
+   * Plays a certain hand of cards
    *
-   * The played cards are removed from the hand
-   * @param indexes list of indexes
-   * @return list of cards played
+   * @param indexes index list of the cards desired to play
+   * @return final score (score.chips * score.multiplier)
+   * @throws MaxPlayCountException when trying to play more than 3 times
+   * @note The played cards are removed from the hand
+   *
    */
-  def play(indexes: List[Int]): List[Card] = {
+  def play(indexes: List[Int]): Int = {
+
+    //---- validation process ----
     if (playCount >= 3) {
       playCount = 1
       throw new MaxPlayCountException("No se puede jugar más de 3 veces un conjunto de cartas")
     }
 
     validate(indexes, _cards)
-    //same procedure as discard cards here
+    //---- play process ----
+    // first, we map the cards to play
     val playedCards = indexes.map(i => cards(i))
-    //then, we remove the same cards in descendent order (to prevent index conflict)
-    removeCards(indexes)
-    playCount += 1
-    print(playCount)
-    playedCards
+    //then we determine the best combination possible
+    val cardCombination: Combination = determineCombination(playedCards)
+    //initialize the value of the base score of the combination
+    val score: Score = cardCombination.bScore
+    //and we update the score based on the cards and jokers
+    for (card <- playedCards){
+      card.applyScore(score, jokers)
     }
+    //to finally update the score based on the type of combination and jokers
+    for (j <- jokers){
+      cardCombination.applyScore(score,j)
+    }
+
+    //then, we remove the same cards in descendent order
+    removeCards(indexes)
+    playCount += 1 //update playcount
+    //return final score
+    score.chips*score.multiplier
+  }
 }
