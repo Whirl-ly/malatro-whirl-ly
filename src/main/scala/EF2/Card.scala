@@ -30,8 +30,8 @@ class Card(private val _rank: Rank, private val _suit: Suit) {
   /**
    * Compares two cards through its attributes
    *
-   * @param obj object to compare
-   * @return true if cards are the same / false if not
+   * @param obj Object to compare
+   * @return True if cards are the same / false if not
    */
   override def equals(obj:Any): Boolean =
     if obj.isInstanceOf[Card] then
@@ -39,13 +39,6 @@ class Card(private val _rank: Rank, private val _suit: Suit) {
       this.rank == other.rank && this.suit == other.suit
     else
       false
-
-  /**
-   * Generates unique ID to a card
-   * @return ID number
-   */
-  override def hashCode(): Int =
-    rank.hashCode() * 31 + suit.hashCode()
 
   /**
    * Applies score depending on the interaction between a card and a list of jokers

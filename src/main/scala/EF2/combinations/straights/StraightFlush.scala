@@ -11,4 +11,7 @@ class StraightFlush extends ApplyForStraights {
   override def validate(Cards: List[Card]): Boolean =
     sameSuit(Cards) && isStraight(Cards)
 
+
+  override def equals(obj: Any): Boolean =
+    obj.isInstanceOf[StraightFlush]
 }

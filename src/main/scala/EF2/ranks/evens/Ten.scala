@@ -9,5 +9,6 @@ class Ten extends AllEven {
 
   override def equals(obj: Any): Boolean =
     obj.isInstanceOf[Ten]
-  override def hashCode(): Int = value * 31 + order
+
+
 }

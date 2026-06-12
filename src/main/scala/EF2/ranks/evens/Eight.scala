@@ -1,6 +1,9 @@
 package cl.uchile.dcc
 package EF2.ranks.evens
 
+/**
+ * Eight (type of rank) representation
+ */
 class Eight extends AllEven {
   /* getters */
   override def value: Int = 8
@@ -8,6 +11,7 @@ class Eight extends AllEven {
 
   override def equals(obj: Any): Boolean =
     obj.isInstanceOf[Eight]
-  override def hashCode(): Int = value * 31 + order
+
+
 
 }

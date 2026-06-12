@@ -1,16 +1,21 @@
 package cl.uchile.dcc
 package EF2.ranks.evens
-import EF2.ranks.ApplyForRank
+import EF2.ranks.Rank
 import EF2.Score
-
+import EF2.jokers.Joker
 /**
  * Establishes default behavior for Even objects
- * @note applyScore simply sends the interaction to the joker class by double-dispatch
+ * @note [[applyScore()]] simply sends the interaction to the joker class through double-dispatch
+ *       by [[Joker.applyEvenRank()]]
  */
-abstract class AllEven extends ApplyForRank {
+abstract class AllEven extends Rank {
   override def classification: Object = Even
 
-  override def applyEvenJoker(score: Score): Unit = {
-    score.multiplier_(score.multiplier + 4)
+  override def applyScore(score: Score, j: Joker): Score = {
+    j.applyEvenRank(score)
+    score
   }
+
+  override def hashCode(): Int = value * 31 + order
+
 }

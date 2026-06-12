@@ -11,4 +11,6 @@ class Straight extends ApplyForStraights {
   override def validate(cards: List[Card]): Boolean =
     isStraight(cards)
 
+  override def equals(obj: Any): Boolean =
+    obj.isInstanceOf[Straight]
 }

@@ -9,7 +9,8 @@ class Six extends AllEven {
 
   override def equals(obj: Any): Boolean =
     obj.isInstanceOf[Six]
-    
-  override def hashCode(): Int = value * 31 + order
-  
+
+
+
+
 }

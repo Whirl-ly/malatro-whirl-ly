@@ -5,7 +5,8 @@ import EF2.Card
 
 /**
  * Validates a certain action (playing/discarding) over cards inside a hand
- * @see play and discard method on Hand class
+ * @see [[Hand.play() How play works]]
+ * @see [[Hand.discard() How discard works]]
  */
 abstract class ValidateAction{
   /**
@@ -17,16 +18,16 @@ abstract class ValidateAction{
    */
   protected def validate(indexes: List[Int], cards: List[Card]): Unit ={
     if (indexes.isEmpty) {
-      throw new IllegalArgumentException("No se puede descartar menos de 1 carta")
+      throw new IllegalArgumentException("Can't discard/play less than 1 card")
     }
 
     if (indexes.length > 5) {
-      throw new IllegalArgumentException("No se puede descartar mas de 5 cartas")
+      throw new IllegalArgumentException("Can't discard/play more than 5 cards")
 
     }
     for (i <- indexes) {
       if (i < 0 || i >= cards.length) {
-        throw new IndexOutOfBoundsException("No se puede descartar una lista de índices inválidos")
+        throw new IndexOutOfBoundsException("Can't play/discard with an invalid index list")
       }
     }
   }

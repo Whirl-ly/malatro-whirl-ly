@@ -8,7 +8,8 @@ class King extends AllFigure {
   
   override def equals(obj: Any): Boolean =
     obj.isInstanceOf[King]
-    
+
+
   override def hashCode(): Int = value * 31 + order
 
 }

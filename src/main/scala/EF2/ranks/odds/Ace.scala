@@ -1,21 +1,20 @@
 package cl.uchile.dcc
 package EF2.ranks.odds
 
-
 /**
  * Ace (type of rank) representation
  * 
  * There are two types: low Ace (order = 1) or high Ace (order = 14)
- * @param _order specifies order inside deck (it can be 1 or 14)
+ * @see [[EF2.combinations.CombinationBase.isStraight() How a Straight Combination solves the dual nature of an Ace Rank]]
  */
-class Ace(private val _order: Int) extends AllOdd {
-  require(_order ==1 || _order == 14, "The ace order has to be 1 or 14")
+class Ace extends AllOdd {
   /* getters */
-  override def order: Int = _order
+  override def order: Int = 1 //by default
   override def value: Int = 11
   
   override def equals(obj:Any): Boolean =
     obj.isInstanceOf[Ace]
-  
-  override def hashCode(): Int = value * 31 + order
+
+
+
 }

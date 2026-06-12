@@ -25,20 +25,5 @@ trait Suit {
    * @see [[applyForSuit applyForSuit abstract class for default behavior]]
    */
   def applyScore(score: Score, j: Joker): Score
-  
-  /**
-   * Generates unique ID to a suit
-   * @return ID number
-   */
-  def hashCode(): Int
 
-  /**
-   * Applies the effect of a GreedyJoker card on suits
-   *
-   * @note does nothing most of the time
-   * @param score score to modify
-   * @see [[Diamond.applyGreedyJoker() Diamond Card interaction with GreedyJoker]]
-   * @see [[Joker.applySuit() applySuit method]]
-   */
-  def applyGreedyJoker(score:Score): Unit
 }

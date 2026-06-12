@@ -1,18 +1,41 @@
 package cl.uchile.dcc
 package EF2.jokers
-import EF2.ranks.*
 import EF2.Score
-import EF2.suits.*
-import EF2.combinations.*
+
+/**
+ * Abstract class that defines the default interaction behavior between
+ * Jokers and properties of a Card/Hand of cards
+ * @note Default interaction behavior for all methods: 
+ *       
+ *       return the same score
+ */
 abstract class JokerApply extends Joker {
-  //Default behavior: returns the same score 
-  def applyRange(cRank: Rank, score: Score): Score = {
+  //Default behavior: returns the same score
+  def applyEvenRank(score: Score): Score = {
     score
   }
-  def applySuit(cSuit: Suit, score: Score): Score = {
+
+  def applyOddRank(score: Score): Score = {
     score
   }
-  def applyCombination(cCombination: Combination, score: Score): Score = {
+
+  def applyFigureRank(score: Score): Score = {
+    score
+  }
+
+  def applyDiamond(score: Score): Score = {
+    score
+  }
+
+  def applyOtherSuit(score: Score): Score = {
+    score
+  }
+
+  def applyStraight(score: Score): Score = {
+    score
+  }
+
+  def applyOtherCombination(score: Score): Score = {
     score
   }
 }

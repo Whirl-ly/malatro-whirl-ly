@@ -1,12 +1,21 @@
 package cl.uchile.dcc
 package EF2.ranks.figures
 
-import EF2.ranks.ApplyForRank
+import EF2.ranks.Rank
 import EF2.Score
-abstract class AllFigure extends ApplyForRank {
+import EF2.jokers.Joker
+/**
+ * Establishes default behavior for Figure objects
+ * @note applyScore simply sends the interaction to the joker class by double-dispatch
+ */
+abstract class AllFigure extends Rank {
   override def classification: Object = Figure
   
-  override def applyScaryFace(score: Score): Unit = {
-    score.chips_(score.chips + 30)
+  override def applyScore(score: Score, j: Joker): Score = {
+    j.applyFigureRank(score)
+    score
+
   }
+
+
 }

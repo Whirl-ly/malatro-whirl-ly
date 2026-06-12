@@ -39,17 +39,17 @@ trait Rank {
 
   /**
    * Compares two types of rank
-   * @param obj object to compare
-   * @return true if ranks are the same / false if not
+   * @param obj Object to compare
+   * @return True if ranks are the same / false if not
    */
   def equals(obj:Any): Boolean
 
   /**
    * Allows score points to update based on the interaction between jokers and ranks by double-dispatch
    *
-   * @param score predisposed score to update
-   * @param j joker to interact with
-   * @return updated score
+   * @param score Predisposed score to update
+   * @param j Joker to interact with
+   * @return Updated score
    */
   def applyScore(score: Score, j: Joker): Score
 
@@ -59,16 +59,4 @@ trait Rank {
    * @return ID number
    */
   def hashCode(): Int
-
-  /**
-   * Applies the effect of a EvenJoker card on ranks
-   *
-   * @note does nothing most of the time
-   * @param score score to modify
-   * @see [[evens.AllEven.applyEvenJoker() Even Range types interaction with GreedyJoker]]
-   * @see [[Joker.applySuit() applySuit method]]
-   */
-  def applyEvenJoker(score:Score) : Unit
-
-  def applyScaryFace(score: Score): Unit
 }

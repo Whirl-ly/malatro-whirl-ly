@@ -8,7 +8,7 @@ class Three extends AllOdd {
 
   override def equals(obj: Any): Boolean =
     obj.isInstanceOf[Three]
-    
-  override def hashCode(): Int = value * 31 + order
-  
+
+
+
 }

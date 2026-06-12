@@ -4,6 +4,7 @@ package EF2.hand
 import EF2.Card
 import EF2.combinations.straights.{Straight, StraightFlush}
 import EF2.combinations.*
+import EF2.combinations.otherCombinations.*
 
 /**
  * Resolves simple cases of conflict from a hand of cards that aligns with multiple type of
@@ -36,7 +37,8 @@ class ResolveHand extends ValidateAction {
    * @example List(LowAceP, TwoP, ThreeP, FourP, FiveP) is a hand of cards which
    *          classifies as a "StraightFlush" instead of "ColorFlush" or "Straight".
    *
-   * @see [[EF2.combinations Types of combination]]
+   * @see [[EF2.combinations.straights Straight Combinations]]
+   * @see [[EF2.combinations.otherCombinations Other Combinations]]
    */
   def determineCombination(Cards: List[Card]) : Combination = {
     if (straightFlush.validate(Cards)) straightFlush

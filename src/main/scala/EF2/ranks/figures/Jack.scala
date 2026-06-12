@@ -11,4 +11,5 @@ class Jack extends AllFigure {
 
   override def hashCode(): Int = value * 31 + order
 
+
 }

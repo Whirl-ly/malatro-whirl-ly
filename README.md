@@ -1,6 +1,6 @@
-# Entrega Parcial 3 | Entrega Final Tarea 1
-This document details important information about the taken decisions  to approach 
-the requirements described on the ``EP3-EF1.md`` file.
+# Entrega Parcial 6 | Entrega Final Tarea 2
+This document details important information about the taken decisions to approach 
+the requirements described on the ``EP6-EF2`` statement.
 
 ## Organization of the code
 
@@ -10,35 +10,37 @@ The code has been organized in this way:
   - A trait
   - Classes
   - Abstract classes (if necessary)
+  - Sub-packages (only when it's possible)¹
 
-The only files/packages that are excluded from this type of organization are 
-``carta.scala``, ``Hand.scala``, ``puntaje.scala`` classes, ``ListOps.scala`` object and the ``test`` package. The reason behind this decision
-is that those files didn't require a trait to describe a desired behavior. 
+Also, the only files that are excluded from this type of organization are 
+[Score Class](src/main/scala/EF2/Score.scala) & [Card Class](src/main/scala/EF2/Card.scala), because they don't follow Trait's rules.
 
-### About the organization of the testing files 
-The test's files has been assigned to the ``test.scala`` package to provide better code-reading to the user reviewing 
-the repo.
+<small>¹: Only when certain classes inside a package have common features.
+Take [Straight Combinations](src/main/scala/EF2/combinations/straights) and
+[Other Combinations](src/main/scala/EF2/combinations/otherCombinations) packages as examples </small>
+
+
 
 ## Relevant design decisions 
 
-### 1. ``combinations`` package
+### 1. [Combinations](src/main/scala/EF2/combinations) package
 #### About the code duplication problem:
 Code duplication was noted on the ``validate()`` method inside each class during the construction/abstraction stage of the package.
 This problem emerged due to the similarities of each combination type. 
 
 For example:
--  ``StraightFlush.scala`` is a stricter variant of the  ``Straight.scala`` class.
--  The only difference between the ``Trio.scala`` and ``Pair.scala`` classes is the number of cards that describes 
-each combination respectively.
 
-The proposed solution to this problem in my repo consists in the creation of an abstract class: ``combinationBase.scala``.
-Said abstract class contains every method that was causing code duplication conflicts.
+-  [StraightFlush](src/main/scala/EF2/combinations/straights/StraightFlush.scala) is a stricter variant of 
+[Straight](src/main/scala/EF2/combinations/straights/Straight.scala). 
+(same reason why these classes were integrated in the same subpackage)
 
-For example:
+- The only difference between [Trio](src/main/scala/EF2/combinations/otherCombinations/Trio.scala) and 
+[Pair](src/main/scala/EF2/combinations/otherCombinations/Pair.scala) 
+classes is the number of cards that describes each combination respectively.
 
-- Instead of defining specific ``validate()`` methods on the ``Trio.scala`` and ``Pair.scala`` classes, a concrete ``mismoRango()``
-method was created inside the abstract class to deliver a code duplication free solution. 
-  - <small>Note: See ``combinacionBase.scala`` documentation for more information. </small>
+The proposed solution to this problem in my repo consists in the creation of an abstract class: [CombinationBase](src/main/scala/EF2/combinations/CombinationBase.scala),
+which contains every method that was causing code duplication conflicts.
+
 
 #### About the ``ResolveHand.scala`` package:
 During the construction of the package, an important question emerged: **¿how can I handle conflictive combination cases 
@@ -83,3 +85,22 @@ Throughout the process, certain design patterns appeared on the files:
 3. Generic methods: Solution for multiple variable types with common logic (``Hand.scala``)
 4. Composition: Used in ``ResolveHand.scala`` class
 5. Mutability in card/joker lists
+
+
+### About the organization of the testing files
+The test's files has been assigned to the [test](src/test) package to provide better code-reading to the user reviewing
+the repo. The classes inside consists of:
+
+1. [ScoreTest](src/test/scala/ScoreTest.scala): Contains test's for constructing, accessing, modifying and comparing
+   Score properties (such as chips and multiplier)
+2. [RankTest](src/test/scala/RankTest.scala) & [SuitTest](src/test/scala/SuitTest.scala):
+   Contains test's for constructing, comparing and verifying applyScore method's for both classes respectively.
+3. [CardTest](src/test/scala/CardTest.scala) & [JokerTest](src/test/scala/SuitTest.scala):
+   Contains test's for constructing and comparing these cards properties respectively.
+4. [HandTest](src/test/scala/HandTest.scala): Contains test's for constructing, playing & discarding methods,
+   adding & removing cards/jokers. 
+
+   Those Hand test's considers exception handling too
+   (like [MaxPlayCountException](src/main/scala/EF2/exceptions/MaxPlayCountException.scala) for example).
+    
+

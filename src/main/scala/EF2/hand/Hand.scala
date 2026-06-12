@@ -46,7 +46,7 @@ class Hand(private var _cards: List[Card], private var _jokers: List[Joker]) ext
    */
    def addCard(newCard: Card): Unit = {
     if (_cards.length >= 8) {
-      throw new IllegalArgumentException("No se pueden tener más de 8 cartas a la mano")
+      throw new IllegalArgumentException("Can't have more than 8 cards in hand")
     }
     _cards = addElem(cards, newCard)
   }
@@ -77,11 +77,11 @@ class Hand(private var _cards: List[Card], private var _jokers: List[Joker]) ext
    * Adds a new joker on a hand
    *
    * @param newJoker joker to add
-   * @throws IllegalArgumentException when adding more than 2 jokers to a hand
+   * @throws IllegalArgumentException when adding more than 2 jokers to hand
    */
   def addJoker(newJoker: Joker): Unit = {
     if (_jokers.length >= 2) {
-      throw new IllegalArgumentException("No se pueden tener más de 2 jokers a la mano")
+      throw new IllegalArgumentException("Can't have more than 2 jokers to hand")
     }
     _jokers = addElem(jokers, newJoker)
   }
@@ -106,7 +106,7 @@ class Hand(private var _cards: List[Card], private var _jokers: List[Joker]) ext
     // ---- validation process ----
     if (discardCount >= 3) {
       discardCount = 1
-      throw new MaxDiscardCountException("No se puede descartar más de 3 veces un conjunto de cartas")
+      throw new MaxDiscardCountException("Can't discard a hand of cards more than 3 times")
     }
     validate(indexes, _cards)
 
@@ -134,7 +134,7 @@ class Hand(private var _cards: List[Card], private var _jokers: List[Joker]) ext
     //---- validation process ----
     if (playCount >= 3) {
       playCount = 1
-      throw new MaxPlayCountException("No se puede jugar más de 3 veces un conjunto de cartas")
+      throw new MaxPlayCountException("Can't play a hand of cards more than 3 times")
     }
 
     validate(indexes, _cards)
