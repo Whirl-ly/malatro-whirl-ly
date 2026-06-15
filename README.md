@@ -1,106 +1,199 @@
-# Entrega Parcial 6 | Entrega Final Tarea 2
-This document details important information about the taken decisions to approach 
-the requirements described on the ``EP6-EF2`` statement.
+# Malatro – Tarea 2 (Entrega Final 2)
 
-## Organization of the code
+This document details the design decisions, code organization, and relevant notes for the
+implementation described in the `EP4` and `EP6-EF2` statements.
 
-The code has been organized in this way:
-- Each distinguishable property of a card has been assigned to a package/folder
-- Each package/folder contains:
-  - A trait
-  - Classes
-  - Abstract classes (if necessary)
-  - Sub-packages (only when it's possible)¹
+---
 
-Also, the only files that are excluded from this type of organization are 
-[Score Class](src/main/scala/EF2/Score.scala) & [Card Class](src/main/scala/EF2/Card.scala), because they don't follow Trait's rules.
+## Table of contents
 
-<small>¹: Only when certain classes inside a package have common features.
-Take [Straight Combinations](src/main/scala/EF2/combinations/straights) and
-[Other Combinations](src/main/scala/EF2/combinations/otherCombinations) packages as examples </small>
+1. [Code organization](#1-code-organization)
+2. [Relevant design decisions](#2-relevant-design-decisions)
+3. [Design patterns used](#3-design-patterns-used)
+4. [Testing organization](#4-testing-organization)
+---
+
+## 1. Code organization
+
+```
+src/main/scala/EF2/
+├── Card.scala                   # Card class (rank + suit)
+├── Score.scala                  # Score class (chips + multiplier)
+├── combinations/
+│   ├── Combination.scala        # Trait: contract for all combinations
+│   ├── CombinationBase.scala    # Abstract class: shared validation logic
+│   ├── straights/
+│   │   ├── ApplyForStraights.scala   # Abstract: score dispatch for straights
+│   │   ├── Straight.scala
+│   │   └── StraightFlush.scala
+│   └── otherCombinations/
+│       ├── ColorFlush.scala
+│       ├── HighCard.scala
+│       ├── Pair.scala
+│       └── Trio.scala
+├── exceptions/
+│   ├── MaxDiscardCountException.scala
+│   └── MaxPlayCountException.scala
+├── hand/
+│   ├── Hand.scala               # Main hand class (play + discard logic)
+│   ├── ListOps.scala            # Object: generic add/remove helpers
+│   ├── ResolveHand.scala        # Resolves conflicting combinations by priority
+│   └── ValidateAction.scala     # Abstract: validates play/discard preconditions
+├── jokers/
+│   ├── Joker.scala              # Trait: contract for all jokers
+│   ├── JokerApply.scala         # Abstract class: default (no-op) joker behavior
+│   ├── DeviousJoker.scala
+│   ├── EvenJoker.scala
+│   ├── GreedyJoker.scala
+│   └── ScaryFace.scala
+├── ranks/
+│   ├── Rank.scala               # Trait: contract for all ranks
+│   ├── ApplyForRank.scala       # Abstract class: default rank score dispatch
+│   ├── evens/   (AllEven, Even object, Two, Four, Six, Eight, Ten)
+│   ├── figures/ (AllFigure, Figure object, Jack, Queen, King)
+│   └── odds/    (AllOdd, Odd object, Ace, Three, Five, Seven, Nine)
+└── suits/
+    ├── Suit.scala               # Trait: contract for all suits
+    ├── applyForSuit.scala       # Abstract class: default suit score dispatch
+    ├── Club.scala
+    ├── Diamond.scala
+    ├── Heart.scala
+    └── Spades.scala
+```
+
+The general rule is: each distinguishable property of a card lives in its own package.
+Every package contains a trait (the contract), one or more abstract classes (shared logic),
+and the concrete classes. Sub-packages are created when concrete classes share enough
+common behaviour to justify a further grouping (e.g. `straights` vs `otherCombinations`,
+`evens` / `figures` / `odds` inside `ranks`).
+
+`Score` and `Card` are the two exceptions: they do not implement any trait because they
+are plain data/model classes that do not need polymorphic dispatch from the outside.
+
+---
+
+## 2. Relevant design decisions
+
+### 2.1 Score calculation – double dispatch (EP4 & EP6-EF2)
+
+Score calculation is the central design challenge of Tarea 2. The problem requires that
+cards, combinations, suits, and ranks all interact with jokers in different ways, and that
+**adding a new joker should never require touching existing card/rank/suit code**.
+
+The solution is a **double-dispatch chain**:
+
+```
+Hand.play(indexes)
+ └─ card.applyScore(score, jokers)        ← iterates each played card
+     ├─ score.chips += rank.value         ← always happens first
+     ├─ rank.applyScore(score, j)         ← dispatches to joker via rank type
+     │    └─ j.applyEvenRank(score)  (or j.applyOddRank / j.applyFigureRank)
+     └─ suit.applyScore(score, j)         ← dispatches to joker via suit type
+          └─ j.applyDiamond(score)   (or j.applyOtherSuit)
+ └─ combination.applyScore(score, j)     ← iterates each active joker
+      └─ j.applyStraight(score)      (or j.applyOtherCombination)
+```
+
+Each concrete rank/suit/combination type calls the *matching* method on the joker. Each
+concrete joker overrides only the methods it cares about; `JokerApply` provides no-op
+defaults for everything else. This means:
+
+- Adding a new joker = create a new class extending `JokerApply` and override relevant methods.
+- Adding a new suit/rank = create a new class and call the right joker method.
+- No `match`/`if-instanceof` chains anywhere.
+
+### 2.2 Combination validation – `CombinationBase` and `ResolveHand`
+
+Code duplication appeared early in the combination classes because many validation methods
+share the same helper logic (`sameSuit`, `isStraight`, `sameRange`). These were extracted
+into `CombinationBase`, which all concrete combination classes extend.
+
+Conflict resolution (e.g. a hand that is simultaneously a `StraightFlush`, a `ColorFlush`,
+and a `Straight`) is handled by `ResolveHand`. It instantiates every combination type once
+and checks them in priority order:
+
+```
+StraightFlush > ColorFlush > Straight > Trio > Pair > HighCard
+```
+
+The downside of this approach is that `ResolveHand` must be used to resolve ambiguous
+hands — the individual `validate()` methods remain useful for single-combination checks
+(e.g. in tests) but do not encode priority.
+
+### 2.3 Straight combinations – `ApplyForStraights`
+
+`DeviousJoker` only triggers on straights. To route the dispatch correctly without a
+`match` on combination type, `StraightFlush` and `Straight` both extend `ApplyForStraights`,
+which overrides `applyScore` to call `j.applyStraight(score)` instead of
+`j.applyOtherCombination(score)`. All other combinations inherit the default from
+`CombinationBase`.
+
+### 2.4 Hand – `ListOps` and mutable lists
+
+Two sources of duplication inside `Hand` were:
+
+1. Adding/removing cards and jokers used identical index-checking logic → extracted to
+   the `ListOps` object with generic methods `addElem[T]` / `removeElem[T]`.
+2. An abstract class was *not* used here because only a single file had the duplication;
+   a Scala `object` is lighter and sufficient.
+
+Mutable `List` fields were chosen over immutable ones because the game model updates the
+hand state in place (cards are physically removed after playing or discarding). Keeping a
+history of every past hand state has no use case in Balatro's rules and would waste memory.
+
+### 2.5 Exception handling (EP4)
+
+All exceptions required by EP4 are implemented:
+
+| Condition                       | Exception / mechanism                                    |
+|---------------------------------|----------------------------------------------------------|
+| Hand > 8 cards                  | `IllegalArgumentException` in `addCard`                  |
+| Hand > 2 jokers                 | `IllegalArgumentException` in `addJoker`                 |
+| Remove card at invalid index    | `IndexOutOfBoundsException` in `ListOps.removeElem`      |
+| Remove joker at invalid index   | `IndexOutOfBoundsException` in `ListOps.removeElem`      |
+| Play > 3 times                  | `MaxPlayCountException` in `Hand.play`                   |
+| Discard > 3 times               | `MaxDiscardCountException` in `Hand.discard`             |
+| Play/discard > 5 cards          | `IllegalArgumentException` in `ValidateAction.validate`  |
+| Play/discard < 1 card           | `IllegalArgumentException` in `ValidateAction.validate`  |
+| Play/discard invalid index list | `IndexOutOfBoundsException` in `ValidateAction.validate` |
+
+### 2.6 Rank classification
+
+Rank classification (`Even`, `Odd`, `Figure`) is represented as a Scala `object` rather
+than a sealed trait hierarchy. This is intentionally simple: a `String` or an `object`
+carry the same information here, and `object` gives referential equality for free
+(`rank.classification == Even`). A full trait hierarchy would add files and indirection
+without benefit given that the classification is only used for dispatch (which already
+goes through the joker double-dispatch chain) and for testing.
+
+---
+
+## 3. Design patterns used
+
+| Pattern                             | Where                                                                             |
+|-------------------------------------|-----------------------------------------------------------------------------------|
+| **Trait as contract**               | `Rank`, `Suit`, `Joker`, `Combination`                                            |
+| **Abstract class for shared logic** | `CombinationBase`, `JokerApply`, `AllEven`, `AllOdd`, `AllFigure`, `applyForSuit` |
+| **Double dispatch**                 | `Rank/Suit.applyScore` → `Joker.applyXxx`                                         |
+| **Template method**                 | `ApplyForStraights.applyScore` overrides the dispatch target                      |
+| **Composition**                     | `ResolveHand` holds instances of every combination type                           |
+| **Utility object**                  | `ListOps` – generic helpers, no state                                             |
+
+---
+
+## 4. Testing organization
+
+Tests live under `src/test/scala`:
+
+| File               | What it covers                                                                                                                            |
+|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| `ScoreTest`        | Construction, getters, setters, comparisons of `Score`                                                                                    |
+| `RankTest`         | Construction, equality, `applyScore` interactions per rank class                                                                          |
+| `SuitTest`         | Construction, equality, `applyScore` interactions per suit class                                                                          |
+| `CardTest`         | Construction, equality, getter delegation                                                                                                 |
+| `JokerTest`        | Each joker's effect on score through `Card.applyScore` and `Combination.applyScore`; interaction accumulation                             |
+| `CombinationsTest` | Validation of every combination type, edge cases (ace duality, conflict resolution)                                                       |
+| `HandTest`         | `addCard`/`addJoker`, `removeCard`/`removeJoker`, `play`, `discard`; all exception paths; full scoring example from the project statement |
 
 
-
-## Relevant design decisions 
-
-### 1. [Combinations](src/main/scala/EF2/combinations) package
-#### About the code duplication problem:
-Code duplication was noted on the ``validate()`` method inside each class during the construction/abstraction stage of the package.
-This problem emerged due to the similarities of each combination type. 
-
-For example:
-
--  [StraightFlush](src/main/scala/EF2/combinations/straights/StraightFlush.scala) is a stricter variant of 
-[Straight](src/main/scala/EF2/combinations/straights/Straight.scala). 
-(same reason why these classes were integrated in the same subpackage)
-
-- The only difference between [Trio](src/main/scala/EF2/combinations/otherCombinations/Trio.scala) and 
-[Pair](src/main/scala/EF2/combinations/otherCombinations/Pair.scala) 
-classes is the number of cards that describes each combination respectively.
-
-The proposed solution to this problem in my repo consists in the creation of an abstract class: [CombinationBase](src/main/scala/EF2/combinations/CombinationBase.scala),
-which contains every method that was causing code duplication conflicts.
-
-
-#### About the ``ResolveHand.scala`` package:
-During the construction of the package, an important question emerged: **¿how can I handle conflictive combination cases 
-without a "priority" property on each combination type?**
-
-The best answer that I could think of was creating a new class by composition:
-``ResolveHand.scala``. Said class initializes each combination type and validates them in the order specified on the
-``EP2.md`` file. 
-
-The downside of this approach is that we have to use this specific class to resolve conflictive cases 
-instead of the already defined ``validate()`` methods inside each class.
-### 2. ``ranges`` package
-I took a specific decision about the ``clasification`` property inside this package. 
-Instead of defining a different trait to abstract the behavior, I took a simpler approach by defining 
-the type of ``clasification`` as a string.
-
-
-### 3. ``Hand.scala`` class and ``ListOps.scala`` object
-#### About code duplication:
-During the phase of construction of methods inside this class, code duplication was noted.
-
-To prevent that problem, I decided to create a sePairate object (``ListOps.scala``) which contains general methods 
-(specifically ``addElem`` & ``removeElem``). This is so we can add card or joker card types to a hand without worries.
-
-This approach is different from the already seen one in the ``combinations`` package. 
-The reason behind this is that I determined that it wasn't necessary to create an abstract class since it was a 
-singular file that was having this problem.
-
-Therefore, I concluded that creating an abstract class would have added unnecessary complexities.
-
-#### About mutable lists:
-To accomplish the objectives of this delivery, I decided that using mutable list's (instead of immutable ones) to 
-add cards/jokers to a hand was the optimal solution overall.
-
-This decision was made because of the nature of the game that we are modeling (Balatro). Creating new immutable list's each time a card/joker is added to a hand doesn't make 
-any sense, it would be a waste of memory and players won't need a history of the hand's played during rounds (which is
-the only reason that I could think of that we would desire to use immutable lists).  
-### Design patterns
-Throughout the process, certain design patterns appeared on the files:
-1. Using trait as a contract: Different classes implement the same contract. 
-2. Abstract Classes for shared code: Reutilizes common logic in subclasses.
-3. Generic methods: Solution for multiple variable types with common logic (``Hand.scala``)
-4. Composition: Used in ``ResolveHand.scala`` class
-5. Mutability in card/joker lists
-
-
-### About the organization of the testing files
-The test's files has been assigned to the [test](src/test) package to provide better code-reading to the user reviewing
-the repo. The classes inside consists of:
-
-1. [ScoreTest](src/test/scala/ScoreTest.scala): Contains test's for constructing, accessing, modifying and comparing
-   Score properties (such as chips and multiplier)
-2. [RankTest](src/test/scala/RankTest.scala) & [SuitTest](src/test/scala/SuitTest.scala):
-   Contains test's for constructing, comparing and verifying applyScore method's for both classes respectively.
-3. [CardTest](src/test/scala/CardTest.scala) & [JokerTest](src/test/scala/SuitTest.scala):
-   Contains test's for constructing and comparing these cards properties respectively.
-4. [HandTest](src/test/scala/HandTest.scala): Contains test's for constructing, playing & discarding methods,
-   adding & removing cards/jokers. 
-
-   Those Hand test's considers exception handling too
-   (like [MaxPlayCountException](src/main/scala/EF2/exceptions/MaxPlayCountException.scala) for example).
-    
 
