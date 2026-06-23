@@ -1,0 +1,14 @@
+package cl.uchile.dcc
+package EF3.ranks.odds
+
+class Five extends AllOdd {
+  /* getters */
+  override def value: Int = 5
+  override def order: Int = 5
+  
+  override def equals(obj:Any): Boolean =
+    obj.isInstanceOf[Five]
+
+
+
+}
