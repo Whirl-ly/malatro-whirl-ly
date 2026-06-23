@@ -196,4 +196,8 @@ Tests live under `src/test/scala`:
 | `HandTest`         | `addCard`/`addJoker`, `removeCard`/`removeJoker`, `play`, `discard`; all exception paths; full scoring example from the project statement |
 
 
+## Game State Diagram:
+
+![Game State Diagram](docs/phases-diagram.png)
+
 
